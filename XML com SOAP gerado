@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-16"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+<s:Header>
+<Action xmlns="http://schemas.microsoft.com/ws/2005/05/addressing/none" s:mustUnderstand="1">http://www.portalfiscal.inf.br/nfe/wsdl/NFeRecepcaoEvento4/nfeRecepcaoEvento</Action>
+</s:Header>
+<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<nfeDadosMsg xmlns="http://www.portalfiscal.inf.br/nfe/wsdl/NFeRecepcaoEvento4">
+<envEvento xmlns="http://www.portalfiscal.inf.br/nfe" versao="1.00">
+<idLote>000000000000001</idLote>
+<evento versao="1.00">
+<infEvento Id="ID000000000000000000000000000000000000000000">
+<cOrgao>53</cOrgao>
+<tpAmb>2</tpAmb>
+<CNPJ>05831108000220</CNPJ>
+<chNFe>000000000000000000000000000000000000000000</chNFe>
+<dhEvento>2024-07-29T13:44:38-03:00</dhEvento>
+<tpEvento>210210</tpEvento>
+<nSeqEvento>1</nSeqEvento>
+<verEvento>1.00</verEvento>
+<detEvento versao="1.00">
+<descEvento>Ciencia da Operacao</descEvento>
+</detEvento>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+<SignedInfo>
+<CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+<Reference URI="#ID000000000000000000000000000000000000000000">
+<Transforms>
+<Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+<Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+</Transforms>
+<DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<DigestValue>npXGjub9cPTK2F5FfkoDidixObg=</DigestValue>
+</Reference>
+</SignedInfo>
+<SignatureValue>ummontedeletra==</SignatureValue>
+<KeyInfo>
+<X509Data>
+<X509Certificate>ocertificado=</X509Certificate>
+</X509Data>
+</KeyInfo>
+</Signature>
+</infEvento>
+</evento>
+</envEvento>
+</nfeDadosMsg>
+</s:Body>
+</s:Envelope>
