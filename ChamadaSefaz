@@ -1,0 +1,55 @@
+        static async Task<string> ProcessaLoteUsandoWsdl(Certificados certificado, TEnvEvento tEnvEvento)
+        {
+            EncryptionHelper encryptionHelper = new EncryptionHelper(mySuperStrongPwd);
+            string decryptedPassword = encryptionHelper.Decrypt(certificado.CertPwd);
+            var cert = new X509Certificate2(certificado.Caminho, decryptedPassword);
+            XmlSerializer xmlSerializer = new XmlSerializer(typeof(TEnvEvento));
+            XmlDocument xmlDoc = new XmlDocument();
+            using (MemoryStream xmlStream = new MemoryStream())
+            {
+                XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+                ns.Add("", "http://www.portalfiscal.inf.br/nfe");
+                xmlSerializer.Serialize(xmlStream, tEnvEvento, ns);
+                xmlStream.Position = 0;
+                xmlDoc.Load(xmlStream); 
+            }
+            string nfeDadosMsgString = xmlDoc.OuterXml;
+//precisei limpar o xml gerado pelo programa... essas coisas não são aceitas pelo SEFAZ
+            nfeDadosMsgString = nfeDadosMsgString.Replace("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "");
+            nfeDadosMsgString = nfeDadosMsgString.Replace("xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"", "");
+            nfeDadosMsgString = nfeDadosMsgString.Replace(" xmlns=\"\"", ""); // Remove xmlns="" from descEvento tags
+            XmlDocument xmlDocCleaned = new XmlDocument();
+            xmlDocCleaned.LoadXml(nfeDadosMsgString);
+            // assianndo
+            XmlNodeList eventoNodes = xmlDocCleaned.GetElementsByTagName("evento");
+            foreach (XmlElement eventoElement in eventoNodes)
+            {
+                XmlElement infEventoElement = (XmlElement)eventoElement.GetElementsByTagName("infEvento")[0];
+                SignXmlElement(infEventoElement, cert);
+            }
+            string finalXmlContent = ConvertXmlDocumentToStringWithoutDeclaration(xmlDocCleaned);
+            XmlDocument finalXmlDoc = new XmlDocument();
+            finalXmlDoc.LoadXml(finalXmlContent);
+
+            var binding = new BasicHttpsBinding();
+            binding.Security.Mode = BasicHttpsSecurityMode.Transport;
+            binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.Certificate;
+            binding.MaxReceivedMessageSize = 2000000000;// aumentando o tamanho limite... testar
+            binding.MaxBufferSize = 2000000000;
+            binding.ReaderQuotas = new XmlDictionaryReaderQuotas
+            {
+                MaxDepth = 64,
+                MaxStringContentLength = 2000000000,
+                MaxArrayLength = 2000000000,
+                MaxBytesPerRead = 4096,
+                MaxNameTableCharCount = 2000000000
+            };
+            //endpoints testados
+            //var endpoint = new EndpointAddress("https://www.nfe.fazenda.gov.br/NFeRecepcaoEvento4/NFeRecepcaoEvento4.asmx");
+            var endpoint = new EndpointAddress("https://www.sefazvirtual.fazenda.gov.br/NFeRecepcaoEvento4/NFeRecepcaoEvento4.asmx");           
+            ServiceSefazVirtual.NFeRecepcaoEvento4SoapClient client = new ServiceSefazVirtual.NFeRecepcaoEvento4SoapClient(binding, endpoint);
+        // função pra gravar a chamada
+            client.Endpoint.EndpointBehaviors.Add(new CustomEndpointBehavior());
+            client.ClientCredentials.ClientCertificate.Certificate = cert;               
+            var leRequeste = new ServiceSefazVirtual.nfeRecepcaoEventoRequest(finalXmlDoc.DocumentElement);
+        }
